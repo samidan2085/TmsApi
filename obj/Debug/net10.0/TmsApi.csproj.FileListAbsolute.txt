@@ -36,3 +36,4 @@ C:\Users\user\Desktop\AAU_TmsCore_Project\TmsApi\bin\Debug\net10.0\Microsoft.Ide
 C:\Users\user\Desktop\AAU_TmsCore_Project\TmsApi\bin\Debug\net10.0\System.IdentityModel.Tokens.Jwt.dll
 C:\Users\user\Desktop\AAU_TmsCore_Project\TmsApi\obj\Debug\net10.0\TmsApi.csproj.AssemblyReference.cache
 C:\Users\user\Desktop\AAU_TmsCore_Project\TmsApi\obj\Debug\net10.0\TmsApi.csproj.Up2Date
+C:\Users\user\Desktop\AAU_TmsCore_Project\TmsApi\obj\Debug\net10.0\TmsApi.sourcelink.json
