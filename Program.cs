@@ -12,7 +12,8 @@ builder.Services.AddAuthentication("Training")
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
-
+app.UseMiddleware<RequestLoggingMiddleware>();
+app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapGet("/api/assessments/results", () => Results.Ok(new
