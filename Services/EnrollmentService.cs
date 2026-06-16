@@ -1,12 +1,6 @@
 // --- The contract --- 
-public interface IEnrollmentService
-{
-    Task<EnrollmentRecord> EnrollAsync(string studentId, string courseCode);
-    Task<EnrollmentRecord?> GetByIdAsync(string id);
-    Task<IReadOnlyList<EnrollmentRecord>> GetAllAsync();
-    Task<bool> DeleteAsync(string id);
-}
-// --- The in-memory implementation --- 
+namespace TmsApi.Services;
+using TmsApi.Services;
 public class EnrollmentService : IEnrollmentService
 {
     private readonly Dictionary<string, EnrollmentRecord> _store = new();
@@ -40,9 +34,9 @@ public class EnrollmentService : IEnrollmentService
         }
         return Task.FromResult(record);
     }
-    public Task<IReadOnlyList<EnrollmentRecord>> GetAllAsync()
+    public Task<List<EnrollmentRecord>> GetAllAsync()
     {
-        IReadOnlyList<EnrollmentRecord> all = _store.Values.ToList();
+        List<EnrollmentRecord> all = _store.Values.ToList();
         return Task.FromResult(all);
     }
     public Task<bool> DeleteAsync(string id)
@@ -73,4 +67,6 @@ public class EnrollmentWorker(IServiceScopeFactory scopeFactory)
         var enrollments = await svc.GetAllAsync();
 
     }
+
 }
+    public class TmsDatabaseException(string message) : Exception(message);

@@ -18,3 +18,33 @@ Accept: application/json
 GET {{TmsApi_HostAddress}}/payment-options/
 Accept: application/json
 ###
+GET {{TmsApi_HostAddress}}/api/enrollments/
+Accept: application/json
+###
+
+post {{TmsApi_HostAddress}}/api/enrollments/{}
+Accept: application/json
+###
+
+curl -X POST http://localhost:5178/api/enrollments \
+-H "Content-Type: application/json" \
+-d '{"studentId":"S-001","courseCode":"CS-101"}'
+###
+curl  http://localhost:5178/api/enrollments/
+
+###
+curl -X DELETE http://localhost:5178/api/enrollments/a4257ea7
+###
+GET http://localhost:5178/api/error 
+Accept: application/json
+###
+GET http://localhost:5178/scalar/v1 
+Accept: application/json
+###
+GET http://localhost:5178/api/courses
+###
+GET http://localhost:5178/api/students
+###
+GET http://localhost:5178/api/enrollments
+###
+GET   http://localhost:5178/api/courses/CS-101
