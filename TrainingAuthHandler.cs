@@ -13,13 +13,13 @@ UrlEncoder encoder)
 }
 protected override Task<AuthenticateResult> HandleAuthenticateAsync()
 {
-if (!Request.Headers.ContainsKey("X-Training-User"))
+if (!Request.Headers.ContainsKey("""X-Training-User"""))
 {
-return Task.FromResult(AuthenticateResult.Fail("Missing training user header."));
+return Task.FromResult(AuthenticateResult.Fail("""Missing training user header."""));
 }
 var claims = new[]
 {
-new Claim(ClaimTypes.Name, Request.Headers["X-Training-User"]!)
+new Claim(ClaimTypes.Name, Request.Headers["""X-Training-User"""]!)
 };
 var identity = new ClaimsIdentity(claims, Scheme.Name);
 var principal = new ClaimsPrincipal(identity);

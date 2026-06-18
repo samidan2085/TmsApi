@@ -21,7 +21,7 @@ public class PaymentService
 
     public void ProcessPayment()
     {
-        Console.WriteLine($"Gateway: {_options.GatewayUrl}");
-        Console.WriteLine($"Max Deposit: {_options.MaxDepositBirr}");
+        Console.WriteLine($"""Gateway: {_options.GatewayUrl}""");
+        Console.WriteLine($"""Max Deposit: {_options.MaxDepositBirr}""");
     }
 }
