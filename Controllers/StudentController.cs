@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 
+namespace TmsApi.Entities;
 [ApiController]
 [Route("api/students")]
-public class StudentsController(
-    IStudentService studentService)
+public class StudentsController(IStudentService studentService)
     : ControllerBase
 {
     [HttpGet]
