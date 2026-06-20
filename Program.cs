@@ -104,11 +104,11 @@ using (var scope = app.Services.CreateScope())
     {
         var students = new List<Student>
 {
-    new() {RegistrationNumber = "TMS-2026-0001", Name = "Alice Smith", GPA = 3.8m, IsActive = true },
-    new() { RegistrationNumber = "TMS-2026-0002", Name = "Bob Jones", GPA = 2.9m, IsActive = true },
-    new() { RegistrationNumber ="TMS-2026-0003", Name = "Charlie Brown", GPA = 3.4m, IsActive = false },
-    new() { RegistrationNumber = "TMS-2026-0004", Name = "Diana Prince", GPA = 3.9m, IsActive = true },
-    new() { RegistrationNumber = "TMS-2026-0005", Name = "Evan Wright", GPA = 2.5m, IsActive = true }
+    new() {RegistrationNumber = "TMS-2026-0001", Age = 20, Name = "Alice Smith", GPA = 3.8m, IsActive = false },
+    new() { RegistrationNumber = "TMS-2026-0002", Age = 22, Name = "Bob Jones", GPA = 2.9m, IsActive = true },
+    new() { RegistrationNumber ="TMS-2026-0003", Age = 19, Name = "Charlie Brown", GPA = 3.4m, IsActive = false },
+    new() { RegistrationNumber = "TMS-2026-0004", Age = 21, Name = "Diana Prince", GPA = 3.9m, IsActive =false },
+    new() { RegistrationNumber = "TMS-2026-0005", Age = 23, Name = "Evan Wright", GPA = 2.5m, IsActive = true }
 };
         context.Students.AddRange(students);
         var courses = new List<Course>
@@ -130,4 +130,5 @@ new() { StudentId = students[3].Id, CourseId = courses[1].Id, Grade = 3.9m }
         context.SaveChanges();
     }
 }
+
 app.Run();

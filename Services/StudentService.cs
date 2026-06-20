@@ -12,9 +12,9 @@ public class StudentService : IStudentService
 
     public Task<List<Student>> GetAllAsync()
         => Task.FromResult(new List<Student>(){
-            new Student(){ Id=1, Name="John Doe" ,RegistrationNumber="REG-001"}});
+            new Student(){ Id=1, Name="John Doe", Age=25, RegistrationNumber="REG-001"}});
 
     public Task<Student> GetByIdAsync(string id)
         => Task.FromResult(
-           new Student() { Id = 1, Name = "John Doe", RegistrationNumber = "REG-001" });
+           new Student() { Id = 1, Name = "John Doe", Age = 27, RegistrationNumber = "REG-001" });
 }

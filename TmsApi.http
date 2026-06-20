@@ -48,3 +48,17 @@ GET http://localhost:5178/api/students
 GET http://localhost:5178/api/enrollments
 ###
 GET   http://localhost:5178/api/courses/CS-101
+
+###
+curl http://localhost:5178/api/test/deferred
+###
+curl http://localhost:5178/api/test/translation-fail
+
+###
+curl http://localhost:5178/api/reports/active-students
+###
+get http://localhost:5178/api/reports/course-enrollments
+###
+get http://localhost:5178/api/reports/average-gpa
+###
+Get http://localhost:5178/api/reports/students-no-enrollment-b
