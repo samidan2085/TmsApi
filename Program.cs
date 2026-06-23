@@ -6,6 +6,7 @@ using TmsApi.Services;
 using Scalar.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using TmsApi.Entities;
+using TmsApi.Data;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services
     .AddOptions<PaymentOptions>()

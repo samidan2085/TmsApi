@@ -62,3 +62,10 @@ get http://localhost:5178/api/reports/course-enrollments
 get http://localhost:5178/api/reports/average-gpa
 ###
 Get http://localhost:5178/api/reports/students-no-enrollment-b
+###
+Get http://localhost:5178/api/students/small-page-response
+###
+get http://localhost:5178/api/students/small-page-response?pageNumber=1
+###
+GET   http://localhost:5178/api/courses/top-5-courses
+###
