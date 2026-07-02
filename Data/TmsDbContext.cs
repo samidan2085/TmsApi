@@ -18,4 +18,18 @@ public class TmsDbContext(
 
         base.OnModelCreating(b);
     }
+    public override async Task<int> SaveChangesAsync(
+    CancellationToken cancellationToken = default)
+{
+    foreach (var entry in ChangeTracker.Entries<Student>())
+    {
+        if (entry.State == EntityState.Added ||
+            entry.State == EntityState.Modified)
+        {
+            entry.Property("LastUpdated").CurrentValue = DateTime.UtcNow;
+        }
+    }
+
+    return await base.SaveChangesAsync(cancellationToken);
+}
 }

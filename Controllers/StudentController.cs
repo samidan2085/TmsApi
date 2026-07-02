@@ -3,6 +3,13 @@ namespace TmsApi.Entities;
 
 using Microsoft.EntityFrameworkCore;
 using TmsApi.Data;
+
+public class UpdateStudentRequest
+{
+    public string Name { get; set; }
+    public int Age { get; set; }
+    public double GPA { get; set; }
+}
 [ApiController]
 [Route("api/students")]
 public class StudentsController : ControllerBase
@@ -16,7 +23,7 @@ public class StudentsController : ControllerBase
         _context = context;
     }
 
-    [HttpGet]
+
     public async Task<IActionResult> GetAll()
     {
         return Ok(await _studentService.GetAllAsync());
@@ -44,5 +51,17 @@ public class StudentsController : ControllerBase
             .ToListAsync(ct);
 
         return Ok(students);
+    }
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateStudent(int id, [FromBody] UpdateStudentRequest request)
+    {
+        var student = await _context.Students.FirstOrDefaultAsync(s => s.Id == id);
+        if (student == null) return NotFound();
+
+        student.Name = request.Name;
+        student.GPA = (decimal)request.GPA;
+
+        await _context.SaveChangesAsync();
+        return Ok(student);
     }
 }

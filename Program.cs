@@ -19,7 +19,7 @@ options.UseNpgsql(builder.Configuration.GetConnectionString("TmsDatabase"))
 .LogTo(Console.WriteLine, LogLevel.Information) // Log SQL to output window
 .EnableSensitiveDataLogging()); // Show parameters in querylogs (dev only)
 builder.Services.AddSingleton<EnrollmentWorker>();
-builder.Services.AddSingleton<IEnrollmentService, EnrollmentService>();
+builder.Services.AddScoped<IEnrollmentService, EnrollmentService>();
 builder.Services.AddSingleton<IStudentService, StudentService>();
 builder.Services.AddSingleton<ICourseService, CourseService>(); builder.Services.AddControllers();
 builder.Services.AddAuthentication("Bearer")
@@ -36,7 +36,7 @@ builder.Host.UseDefaultServiceProvider(options =>
 {
     options.ValidateScopes = true;
     options.ValidateOnBuild = true;
-});
+    });
 
 var app = builder.Build();
 app.MapControllers();
@@ -105,9 +105,9 @@ using (var scope = app.Services.CreateScope())
     {
         var students = new List<Student>
 {
-    new() {RegistrationNumber = "TMS-2026-0001", Age = 20, Name = "Alice Smith", GPA = 3.8m, IsActive = false },
-    new() { RegistrationNumber = "TMS-2026-0002", Age = 22, Name = "Bob Jones", GPA = 2.9m, IsActive = true },
-    new() { RegistrationNumber ="TMS-2026-0003", Age = 19, Name = "Charlie Brown", GPA = 3.4m, IsActive = false },
+    new() {RegistrationNumber = "TMS-2026-0001", Age = 20, Name = "Samuel Demilew", GPA = 3.8m, IsActive = false },
+    new() { RegistrationNumber = "TMS-2026-0002", Age = 22, Name = "Ephrem Demilew", GPA = 2.9m, IsActive = true },
+    new() { RegistrationNumber ="TMS-2026-0003", Age = 19, Name = "kalkidan Demilew", GPA = 3.4m, IsActive = false },
     new() { RegistrationNumber = "TMS-2026-0004", Age = 21, Name = "Diana Prince", GPA = 3.9m, IsActive =false },
     new() { RegistrationNumber = "TMS-2026-0005", Age = 23, Name = "Evan Wright", GPA = 2.5m, IsActive = true }
 };

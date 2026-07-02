@@ -22,17 +22,17 @@ GET {{TmsApi_HostAddress}}/api/enrollments/
 Accept: application/json
 ###
 
-post {{TmsApi_HostAddress}}/api/enrollments/{}
+post {{TmsApi_HostAddress}}/api/enrollments/{2}
 Accept: application/json
 ###
 
 curl -X POST http://localhost:5178/api/enrollments \
 -H "Content-Type: application/json" \
--d '{"studentId":"S-001","courseCode":"CS-101"}'
+-d '{"studentId":"S-007","courseCode":"CS-109"}'
 ###
 curl  http://localhost:5178/api/enrollments/
-
 ###
+
 curl -X DELETE http://localhost:5178/api/enrollments/a4257ea7
 ###
 GET http://localhost:5178/api/error 
@@ -68,4 +68,13 @@ Get http://localhost:5178/api/students/small-page-response
 get http://localhost:5178/api/students/small-page-response?pageNumber=1
 ###
 GET   http://localhost:5178/api/courses/top-5-courses
+
 ###
+put http://localhost:5178/api/students/1
+Content-Type: application/json
+###
+DELETE http://localhost:5178/api/enrollments/1
+Content-Type: application/json
+###
+
+curl -X PUT http://localhost:5178/api/enrollments/2/archive

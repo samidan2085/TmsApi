@@ -23,5 +23,6 @@ public class EnrollmentConfiguration : IEntityTypeConfiguration<Enrollment>
         b.HasOne(e => e.Course)
             .WithMany(c => c.Enrollments)
             .HasForeignKey(e => e.CourseId);
-    }
+           
+}
 }

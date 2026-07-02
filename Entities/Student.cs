@@ -9,6 +9,8 @@ public required string Name { get; set; }
 public required int Age { get; set; }
 public decimal GPA { get; set; }
 public bool IsActive { get; set; } = true;
+public uint Version { get; set; }
+public bool IsDeleted { get; set; } = false;
 // Navigation property for many-to-many relationship
 public ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
 public ICollection<Certificate> Certificates { get; set; } = new List<Certificate>();
