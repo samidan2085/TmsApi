@@ -1,5 +1,13 @@
 namespace TmsApi.Services;
+using TmsApi.Dtos;
 public interface IEnrollmentService
+{
+    Task<EnrollmentResponseDto> GetByIdAsync(int courseId,int id, CancellationToken ct);
+    Task<EnrollmentResponseDto?> CreateAsync(int courseId, EnrollStudentRequest request, CancellationToken ct);
+  
+}
+
+/*public interface IEnrollmentService
 {
     Task<List<EnrollmentRecord>> GetAllAsync();
     Task<EnrollmentRecord?> GetByIdAsync(string id);
@@ -7,4 +15,4 @@ public interface IEnrollmentService
     Task<bool> DeleteAsync(string id);
     Task ArchiveEnrollmentAsync(string id);
 }
-
+*/

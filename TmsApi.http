@@ -73,8 +73,27 @@ GET   http://localhost:5178/api/courses/top-5-courses
 put http://localhost:5178/api/students/1
 Content-Type: application/json
 ###
-DELETE http://localhost:5178/api/enrollments/1
+DELETE http://localhost:5178/api/enrollments/7e960cf4
 Content-Type: application/json
 ###
 
 curl -X PUT http://localhost:5178/api/enrollments/2/archive
+###
+curl -X POST http://localhost:5178/api/courses
+-H "Content-Type: application/json" \
+-d '{ "code": "CSE-101",
+"title": "Web
+Development
+Fundamentals",
+"maxCapacity": 30 }'
+###
+curl -X POST  http://localhost:5178/api/courses
+-H "Content-Type: application/json" \
+-d '{
+"code": "CSE-113",
+"title": "operating systems",
+"studentId": "S-007",
+"MaxCapacity": 1 }'
+
+ 
+ 

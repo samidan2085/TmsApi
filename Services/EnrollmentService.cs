@@ -1,3 +1,56 @@
+using Microsoft.EntityFrameworkCore; 
+namespace TmsApi.Services;
+using TmsApi.Data;
+using TmsApi.Dtos;
+public class EnrollmentService(TmsDbContext context, ILogger<EnrollmentService> logger)
+    : IEnrollmentService
+{
+    public Task<EnrollmentResponseDto?> GetByIdAsync(
+        int courseId,
+        int id,
+        CancellationToken ct) =>
+        context.Enrollments
+            .AsNoTracking()
+            .Where(e => e.Id == id && e.CourseId == courseId)
+            .Select(e => new EnrollmentResponseDto(
+                e.Id,
+                e.CourseId,
+                e.StudentId,
+                e.EnrolledAt))
+            .FirstOrDefaultAsync(ct);
+
+    public async Task<EnrollmentResponseDto> CreateAsync(
+        int courseId,
+        EnrollStudentRequest request,
+        CancellationToken ct)
+    {
+        // Create a new Enrollment
+        var enrollment = context.Enrollments.Add(new()
+        {
+            CourseId = courseId,
+            StudentId = request.StudentId,
+            EnrolledAt = DateTime.UtcNow
+        }).Entity;
+
+        // Save changes
+        await context.SaveChangesAsync(ct);
+
+        // Log information
+        logger.LogInformation(
+            "Student {StudentId} enrolled in Course {CourseId} with EnrollmentId {EnrollmentId}",
+            enrollment.StudentId,
+            enrollment.CourseId,
+            enrollment.Id);
+
+        // Return the created enrollment
+        return await GetByIdAsync(courseId, enrollment.Id, ct)
+               ?? throw new InvalidOperationException("Enrollment could not be retrieved after creation.");
+    }
+     
+}
+
+
+/*
 // --- The contract --- 
 using Microsoft.EntityFrameworkCore; 
 namespace TmsApi.Services;
@@ -98,4 +151,5 @@ public class EnrollmentWorker(IServiceScopeFactory scopeFactory)
     }
 
 }
-    public class TmsDatabaseException(string message) : Exception(message);
+  
+*/
