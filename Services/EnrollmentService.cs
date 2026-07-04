@@ -46,7 +46,21 @@ public class EnrollmentService(TmsDbContext context, ILogger<EnrollmentService> 
         return await GetByIdAsync(courseId, enrollment.Id, ct)
                ?? throw new InvalidOperationException("Enrollment could not be retrieved after creation.");
     }
-     
+
+    public async Task<List<EnrollmentResponseDto>> GetAllAsync(
+        int courseId,
+        CancellationToken ct)
+    {
+        return await context.Enrollments
+            .AsNoTracking()
+            .Where(e => e.CourseId == courseId)
+            .Select(e => new EnrollmentResponseDto(
+                e.Id,
+                e.CourseId,
+                e.StudentId,
+                e.EnrolledAt))
+            .ToListAsync(ct);
+    }
 }
 
 

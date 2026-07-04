@@ -45,6 +45,22 @@ public class EnrollmentsController(ICourseService courseService, IEnrollmentServ
             return CreatedAtAction(nameof(GetEnrollment), new { courseId, id = enrollment.Id }, enrollment);
                throw new NotImplementedException();
         }
+        [HttpGet]
+public async Task<IActionResult> GetEnrollments(
+    int courseId,
+    CancellationToken ct)
+{
+    var course = await courseService.GetByIdAsync(courseId, ct);
+
+    if (course is null)
+    {
+        return NotFound();
+    }
+
+    var enrollments = await enrollmentService.GetAllAsync(courseId, ct);
+
+    return Ok(enrollments);
+}
 }
 // If full, return Conflict(new ProblemDetails { ... })with:
         // Title = "Course is full"
