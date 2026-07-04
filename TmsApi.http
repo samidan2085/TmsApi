@@ -95,5 +95,6 @@ curl -X POST  http://localhost:5178/api/courses
 "studentId": "S-007",
 "MaxCapacity": 1 }'
 
+
  
  
