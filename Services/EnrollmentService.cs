@@ -5,7 +5,7 @@ using TmsApi.Dtos;
 public class EnrollmentService(TmsDbContext context, ILogger<EnrollmentService> logger)
     : IEnrollmentService
 {
-    public Task<EnrollmentResponseDto?> GetByIdAsync(
+    public Task<EnrollmentResponseDto> GetByIdAsync(
         int courseId,
         int id,
         CancellationToken ct) =>
@@ -17,9 +17,9 @@ public class EnrollmentService(TmsDbContext context, ILogger<EnrollmentService> 
                 e.CourseId,
                 e.StudentId,
                 e.EnrolledAt))
-            .FirstOrDefaultAsync(ct);
+            .FirstAsync(ct);
 
-    public async Task<EnrollmentResponseDto> CreateAsync(
+    public async Task<EnrollmentResponseDto?> CreateAsync(
         int courseId,
         EnrollStudentRequest request,
         CancellationToken ct)
@@ -43,8 +43,7 @@ public class EnrollmentService(TmsDbContext context, ILogger<EnrollmentService> 
             enrollment.Id);
 
         // Return the created enrollment
-        return await GetByIdAsync(courseId, enrollment.Id, ct)
-               ?? throw new InvalidOperationException("Enrollment could not be retrieved after creation.");
+        return await GetByIdAsync(courseId, enrollment.Id, ct);
     }
 
     public async Task<List<EnrollmentResponseDto>> GetAllAsync(
