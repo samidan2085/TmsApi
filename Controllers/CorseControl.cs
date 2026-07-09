@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using TmsApi.Entities;
 using TmsApi.Services;
+using TmsApi.Dtos;
+
 namespace TmsApi.Controllers;
 [ApiController]
 [Route("api/courses")]
@@ -44,6 +46,13 @@ var result = await courseService.CreateAsync(request, ct);
 return CreatedAtAction(nameof(GetCourseById), new { id = result.Id
 }, result);
     }
+    [HttpGet]
+public async Task<IActionResult> GetCourses(
+[FromQuery] PagedRequest request, CancellationToken ct)
+{
+var result = await courseService.GetCoursesAsync(request, ct);
+return Ok(result);
+}
 }
 /*
 public class CoursesController(ICourseService courseService) : ControllerBase

@@ -8,7 +8,8 @@ using Scalar.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using TmsApi.Entities;
 using TmsApi.Data;
-
+using TmsApi.Filters;  
+    
 var builder = WebApplication.CreateBuilder(args);
 builder.Services
     .AddOptions<PaymentOptions>()
@@ -31,6 +32,10 @@ builder.Services.AddAuthentication("Training")
     .AddScheme<AuthenticationSchemeOptions, TrainingAuthHandler>(
         "Training", null);
 builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+options.Filters.Add<AuditLogFilter>();
+});
 builder.Services.AddProblemDetails();
 builder.Services.AddAuthorization();
 builder.Services.AddOpenApi(); // Required before MapOpenApi() will work
@@ -58,6 +63,9 @@ if (app.Environment.IsDevelopment())
 
     // Scalar UI
     app.MapScalarApiReference();
+    using var scope = app.Services.CreateScope();
+var context = scope.ServiceProvider.GetRequiredService<TmsDbContext>();
+await DataSeeder.SeedAsync(context);
 }
 else
 {

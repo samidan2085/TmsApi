@@ -12,8 +12,7 @@ public class EnrollmentsController(ICourseService courseService, IEnrollmentServ
     public async Task<IActionResult> GetEnrollment(int courseId, int id,
     CancellationToken ct)
     {
-        var enrollment = await enrollmentService.GetByIdAsync(courseId,
-        id, ct);
+        var enrollment = await enrollmentService.GetByIdAsync(courseId, id, ct);
         return enrollment is not null ? Ok(enrollment) : NotFound();
     }
     [HttpPost]
