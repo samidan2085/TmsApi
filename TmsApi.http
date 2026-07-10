@@ -107,7 +107,12 @@ GET  http://localhost:5178/api/courses?search=fund
 ###
 GET http://localhost:5178/api/courses?orderBy=Code&descending=true&pageSize=5
 ###
-GET http://localhost:5178/api/course
+GET http://localhost:5178/api/courses/1
+###
+GET http://localhost:5178/api/courses/1/enrollments
+###
+POST http://localhost:5178/api/courses/1/enrollments
+Content-Type: application/json
 
 
  

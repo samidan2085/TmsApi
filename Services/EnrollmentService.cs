@@ -46,7 +46,7 @@ public class EnrollmentService(TmsDbContext context, ILogger<EnrollmentService> 
         return await GetByIdAsync(courseId, enrollment.Id, ct);
     }
 
-    public async Task<List<EnrollmentResponseDto>> GetAllAsync(
+    public async Task<List<EnrollmentResponseDto>> GetByCourseAsync(
         int courseId,
         CancellationToken ct)
     {
