@@ -50,13 +50,14 @@ Status400BadRequest)]
             });
         }
     
-        // If not full, call enrollmentService.CreateAsync and return CreatedAtAction(nameof(GetEnrollment),
-        // new { courseId, id = enrollment.Id }, enrollment).
-        
-    
-            var enrollment = await enrollmentService.CreateAsync(courseId, request, ct);
-            return CreatedAtAction(nameof(GetEnrollment), new { courseId, id = enrollment.Id }, enrollment);
+        var enrollment = await enrollmentService.CreateAsync(courseId, request, ct);
+        if (enrollment is null)
+        {
+            return NotFound();
         }
+    
+        return CreatedAtAction(nameof(GetEnrollment), new { courseId, id = enrollment.Id }, enrollment);
+    }
         [HttpGet(Name = "ListCourseEnrollments")]
         [ProducesResponseType(typeof(IReadOnlyList<EnrollmentResponseDto>),StatusCodes.Status200OK)]
 [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
