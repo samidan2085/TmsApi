@@ -8,6 +8,6 @@ obj/
 *.cache
 
 .vscode/
-.Controller/V1/
-.Controller/V2/
-.Middleware/
+./Controller/V1/
+./Controller/V2/
+./Middleware/
