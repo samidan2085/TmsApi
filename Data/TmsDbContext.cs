@@ -1,3 +1,4 @@
+using System.Runtime.ConstrainedExecution;
 using Microsoft.EntityFrameworkCore;
 using TmsApi.Entities;
 
@@ -10,6 +11,7 @@ public class TmsDbContext(
     public DbSet<Student> Students => Set<Student>();
     public DbSet<Course> Courses => Set<Course>();
     public DbSet<Enrollment> Enrollments => Set<Enrollment>();
+    public DbSet<Certificate> certificates => Set<Certificate>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {

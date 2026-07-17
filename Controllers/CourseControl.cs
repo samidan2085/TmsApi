@@ -16,8 +16,8 @@ public class CoursesController(
 
 ) : ControllerBase
 {
-    [HttpGet("{id:int}", Name = nameof(GetCourseById))]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+[HttpGet("{id:int}", Name = nameof(GetCourseById))]
+ [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
 [EndpointSummary("Get a course by ID")]
 [EndpointDescription("Returns course details with HATEOAS links. Returns 404 if the course does not exist.")]
     public async Task<IActionResult> GetCourseById(int id, CancellationToken ct)
@@ -79,9 +79,8 @@ public class CoursesController(
         }
         */
         [HttpPost]
-       [ProducesResponseType(typeof(CourseResponseDto), StatusCodes.Status201Created)]
-[ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.
-Status400BadRequest)]
+[ProducesResponseType(typeof(CourseResponseDto), StatusCodes.Status201Created)]
+[ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
 [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
 [EndpointSummary("Create a new course")]
 [EndpointDescription("Creates a course with a unique code. Returns409 if the course code already exists.")]
@@ -110,7 +109,7 @@ Status400BadRequest)]
             }, result);
         }
         [HttpGet]
-         [ProducesResponseType(typeof(TmsApi.Dtos.PagedResponse<CourseResponseDto>), StatusCodes.Status200OK)]
+[ProducesResponseType(typeof(TmsApi.Dtos.PagedResponse<CourseResponseDto>), StatusCodes.Status200OK)]
     [EndpointSummary("List courses with pagination")]
     [EndpointDescription("Returns a paginated, optionally filtered listof TMS courses. PageSize is capped at 50.")]
        
@@ -120,6 +119,26 @@ Status400BadRequest)]
             var result = await courseService.GetCoursesAsync(request, ct);
             return Ok(result);
         }
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> UpdateCourse(int id,    UpdateCourseRequest  request,  CancellationToken ct)
+    {
+        var course = await courseService.UpdateAsync(id,request,ct);
+        if(course is null)
+        {
+            return NotFound();
+        }
+        return Ok(course);
+    }
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> DeleteCourse(int id, CancellationToken ct)
+    {
+        var delete= await courseService.DeleteAsync(id,ct);
+        if (!delete)
+        {
+            return NotFound();
+        }
+        return NoContent();
+    }
       
     }
 /*

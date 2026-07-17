@@ -10,5 +10,6 @@ public class Course
     public int MaxCapacity { get; set; }
     // Navigation property for many-to-many relationship
     public ICollection<Enrollment> Enrollments { get; set; } = [];
+    public ICollection<Certificate> certificates {get; set;} =new List<Certificate>();
    
 }

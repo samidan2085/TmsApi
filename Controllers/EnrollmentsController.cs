@@ -5,6 +5,7 @@ using TmsApi.Services;
 namespace TmsApi.Controllers;
 
 [ApiController]
+
 [Route("api/courses/{courseId:int}/enrollments")]
 [Tags("Enrollments")]
 [Produces("application/json")]
@@ -22,8 +23,8 @@ public async Task<IActionResult> GetEnrollment(int courseId, int id,
         return enrollment is not null ? Ok(enrollment) : NotFound();
     }
   
-    [HttpPost]
-    [ProducesResponseType(typeof(EnrollmentResponseDto), StatusCodes.Status201Created)]
+[HttpPost]
+[ProducesResponseType(typeof(EnrollmentResponseDto), StatusCodes.Status201Created)]
 [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.
 Status400BadRequest)]
 [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
@@ -78,6 +79,16 @@ public async Task<IActionResult> GetEnrollments(
     return Ok(enrollments);
     throw new NotImplementedException();
 }
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> DeleteEnrollment(int courseId, CancellationToken ct)
+    {
+        var delete = await enrollmentService.DeleteAsync(courseId,ct);
+        if (!delete)
+        {
+            return NotFound();
+        }
+        return NoContent();
+    }
 }
 // If full, return Conflict(new ProblemDetails { ... })with:
         // Title = "Course is full"

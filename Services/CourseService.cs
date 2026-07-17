@@ -4,6 +4,7 @@ using TmsApi.Data;
 using TmsApi.Entities;
 using TmsApi.Dtos;
 
+
 namespace TmsApi.Services;
 
 
@@ -93,6 +94,28 @@ public async Task<PagedResponse<CourseResponseDto>> GetCoursesAsync( PagedReques
         request.Page,
         request.PageSize);
 }
+public async  Task<CourseResponseDto?> UpdateAsync(int id, UpdateCourseRequest request,CancellationToken ct)
+    {
+       var course = await context.Courses.FirstOrDefaultAsync(c=> c.Id==id,ct);
+       if(course is null) 
+       return null;
+     course.Code = request.Code;
+     course.Title = request.Title;
+     course.MaxCapacity = request.MaxCapacity;
+     await context.SaveChangesAsync(ct);
+  return await GetByIdAsync(id,ct);
+    }
+    public async Task<bool> DeleteAsync(int id, CancellationToken ct)
+    {
+        var course = await context.Courses.FirstOrDefaultAsync(c=> c.Id==id,ct);
+        if(course is null)
+        {
+            return false;
+        }
+        context.Courses.Remove(course);
+        await context.SaveChangesAsync(ct);
+        return true;
+    }
 /*
     public async Task<Course> CreateAsync(Course course, CancellationToken ct)
     {

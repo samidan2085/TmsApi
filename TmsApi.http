@@ -113,7 +113,21 @@ GET http://localhost:5178/api/courses/1/enrollments
 ###
 POST http://localhost:5178/api/courses/1/enrollments
 Content-Type: application/json
-
-
+###
+curl -i https://localhost:5178/api/v{version:apiVersion}/courses
+Content-Type: application/json
+###
+POST http://localhost:5178/api/Certificat
+Content-Type: application/json
+###
+curl -X POST http://localhost:5178/api/Certificat
+-H "Content-Type: application/json" \
+-d '{
+  "serialNumber": "CERT-9999",
+  "title": "C#",
+  "issuedAt": "2026-01-05",
+  "studentId": 1,
+  "courseId": 1
+}'
  
  

@@ -1,8 +1,10 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 namespace TmsApi.Entities;
 public class Certificate
 {
 public int Id { get; set; } // surrogateprimary key
+public required string Title {get; set;}
 public required string SerialNumber { get; set; } // naturalkey — human-readable (uniqueness configured in Session 2)
 public DateTime IssuedAt { get; set; } = DateTime.UtcNow;
 // Foreign keys + navigation to the student and course

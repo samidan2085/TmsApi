@@ -9,7 +9,8 @@ using Microsoft.EntityFrameworkCore;
 using TmsApi.Entities;
 using TmsApi.Data;
 using TmsApi.Filters;  
-    
+using Asp.Versioning;
+using TmsApi.Middleware;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services
     .AddOptions<PaymentOptions>()
@@ -23,8 +24,9 @@ options.UseNpgsql(builder.Configuration.GetConnectionString("TmsDatabase"))
 .EnableSensitiveDataLogging()); // Show parameters in querylogs (dev only)
 builder.Services.AddSingleton<EnrollmentWorker>();
 builder.Services.AddScoped<IEnrollmentService, EnrollmentService>();
-builder.Services.AddSingleton<IStudentService, StudentService>();
+builder.Services.AddScoped<IStudentService, StudentService>();
 builder.Services.AddScoped<ICourseService, CourseService>();
+builder.Services.AddScoped< ICertificatServices, CertificatService>();
 builder.Services.AddControllers();
 builder.Services.AddAuthentication("Bearer")
     .AddJwtBearer("Bearer", options => { });
@@ -38,7 +40,28 @@ options.Filters.Add<AuditLogFilter>();
 });
 builder.Services.AddProblemDetails();
 builder.Services.AddAuthorization();
-builder.Services.AddOpenApi(); // Required before MapOpenApi() will work
+builder.Services.AddOpenApi("v1", options =>
+{
+options.ShouldInclude = description =>
+description.GroupName == "v1";
+}); // Required before MapOpenApi() will work
+builder.Services.AddOpenApi("v2", options =>
+{
+options.ShouldInclude = description =>
+description.GroupName == "v2";
+});
+builder.Services.AddApiVersioning(options =>
+{
+options.DefaultApiVersion = new ApiVersion(1, 0);
+options.AssumeDefaultVersionWhenUnspecified = true;
+options.ReportApiVersions = true;
+options.ApiVersionReader = new UrlSegmentApiVersionReader();
+})
+.AddApiExplorer(options =>
+{
+options.GroupNameFormat = "'v'VVV";
+options.SubstituteApiVersionInUrl = true;
+});
 
 builder.Host.UseDefaultServiceProvider(options =>
 {
@@ -47,7 +70,9 @@ builder.Host.UseDefaultServiceProvider(options =>
 });
 
 var app = builder.Build();
+
 app.MapControllers();
+app.UseMiddleware<V1DeprecationMiddleware>();
 app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseExceptionHandler();
 app.UseAuthentication();
@@ -62,7 +87,18 @@ if (app.Environment.IsDevelopment())
 
 
     // Scalar UI
-    app.MapScalarApiReference();
+    // update your scalar config
+app.MapScalarApiReference(options =>
+{
+options.WithTitle("TMS API Reference")
+.WithTheme(ScalarTheme.DeepSpace)
+.WithDefaultHttpClient(ScalarTarget.CSharp,
+ScalarClient.HttpClient);
+// Tell Scalar to pull both documents into its sidebar dropdown
+options
+.AddDocument("v1", "API Version 1.0")
+.AddDocument("v2", "API Version 2.0");
+});
     using var scope = app.Services.CreateScope();
 var context = scope.ServiceProvider.GetRequiredService<TmsDbContext>();
 await DataSeeder.SeedAsync(context);

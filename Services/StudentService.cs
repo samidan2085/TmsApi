@@ -1,20 +1,117 @@
-namespace TmsApi.Entities;
 
-public interface IStudentService
+using Microsoft.EntityFrameworkCore;
+using TmsApi.Data;
+using TmsApi.Entities;
+using TmsApi.Dtos;
+
+
+namespace TmsApi.Services;
+
+public class StudentService(TmsDbContext context) : IStudentService
 {
-    Task<List<Student>> GetAllAsync();
-    Task<Student> GetByIdAsync(string id);
+
+
+    public async Task<List<StudentResponseDto>> GetAllAsync(CancellationToken ct)
+    {
+        return await context.Students
+            .AsNoTracking()
+            .Select(s => new StudentResponseDto(
+                s.Id,
+                s.RegistrationNumber,
+                s.Name,
+                s.Age,
+                s.GPA,
+                s.IsActive
+            ))
+            .ToListAsync(ct);
+    }
+       
+    public async Task<StudentResponseDto?> GetByIdAsync(int id,CancellationToken ct)
+    {
+        return await context.Students
+            .AsNoTracking()
+            .Where(s=>s.Id==id)
+            .Select(s => new StudentResponseDto(
+                s.Id,
+                s.RegistrationNumber,
+                s.Name,
+                s.Age,
+                s.GPA,
+                s.IsActive
+            ))
+            .FirstOrDefaultAsync(ct);
+    }
+           
+public async Task<StudentResponseDto> CreateAsync(
+    CreateStudentRequest request,
+    CancellationToken ct)
+{
+    var student = new Student
+    {
+        RegistrationNumber = request.RegistrationNumber,
+        Name = request.Name,
+        Age = request.Age,
+        GPA = request.GPA
+    };
+
+    context.Students.Add(student);
+
+    await context.SaveChangesAsync(ct);
+
+    return new StudentResponseDto(
+        student.Id,
+        student.RegistrationNumber,
+        student.Name,
+        student.Age,
+        student.GPA,
+        student.IsActive
+    );
+}
+public async Task<bool> DeleteAsync(
+    int id,
+    CancellationToken ct)
+{
+    var student = await context.Students
+        .FirstOrDefaultAsync(s => s.Id == id, ct);
+
+    if (student is null)
+    {
+        return false;
+    }
+
+    context.Students.Remove(student);
+
+    await context.SaveChangesAsync(ct);
+
+    return true;
 }
 
-public class StudentService : IStudentService
+   public async Task<StudentResponseDto?> UpdateAsync(int id, UpdateStudentRequest request,CancellationToken ct)
 {
+    var student = await context.Students
+        .FirstOrDefaultAsync(s => s.Id == id, ct);
 
+    if (student is null)
+    {
+        return null;
+    }
 
-    public Task<List<Student>> GetAllAsync()
-        => Task.FromResult(new List<Student>(){
-            new Student(){ Id=1, Name="John Doe", Age=25, RegistrationNumber="REG-001"}});
+    student.RegistrationNumber = request.RegistrationNumber;
+    student.Name = request.Name;
+    student.Age = request.Age;
+    student.GPA = request.GPA;
+    student.IsActive = request.IsActive;
 
-    public Task<Student> GetByIdAsync(string id)
-        => Task.FromResult(
-           new Student() { Id = 1, Name = "John Doe", Age = 27, RegistrationNumber = "REG-001" });
+    await context.SaveChangesAsync(ct);
+
+    return new StudentResponseDto(
+        student.Id,
+        student.RegistrationNumber,
+        student.Name,
+        student.Age,
+        student.GPA,
+        student.IsActive
+    );
+}
+
 }

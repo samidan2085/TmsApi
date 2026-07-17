@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore; 
 namespace TmsApi.Services;
+
+using Microsoft.AspNetCore.Http.HttpResults;
 using TmsApi.Data;
 using TmsApi.Dtos;
 public class EnrollmentService(TmsDbContext context, ILogger<EnrollmentService> logger)
@@ -60,8 +62,20 @@ public class EnrollmentService(TmsDbContext context, ILogger<EnrollmentService> 
                 e.EnrolledAt))
             .ToListAsync(ct);
     }
+public async Task<bool> DeleteAsync(int courseId, CancellationToken ct)
+    {
+        var delete = await context.Enrollments.FirstOrDefaultAsync(e => e.CourseId== courseId,ct);
+        if(delete is null)
+        return false;
+        context.Enrollments.Remove(delete);
+        await context.SaveChangesAsync();
+        return true;
+
+    }
+
+    }
     
-}
+
 
 
 /*
