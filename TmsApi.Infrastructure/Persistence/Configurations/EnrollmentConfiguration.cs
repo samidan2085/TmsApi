@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using TmsApi.Entities;
+using TmsApi.Domain.Entities;
 
 namespace TmsApi.Infrastructure.Persistence.Configurations;
 

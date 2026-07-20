@@ -1,19 +1,23 @@
-using System;
+using TmsApi.Application.Enrollments.Commands;
+using TmsApi.Application.Behaviors;
 using Asp.Versioning;
+using FluentValidation;
+using MediatR;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.OpenApi;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Scalar.AspNetCore;
 using TmsApi.Application.Interfaces;
 using TmsApi.Infrastructure.Services;
 using TmsApi.Domain.Entities;
-using TmsApi.Entities;
+using TmsApi.Domain.Entities;
 using TmsApi.Api.Filters;
-using  TmsApi.Api.Controllers;
+using TmsApi.Infrastructure.SeedData;
+using TmsApi.Api.Workers;
+
 using TmsApi.Infrastructure.Persistence.Context;
 using  TmsApi.Api.Middlewares;
+using TmsApi.Api.ExceptionHandlers;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services
     .AddOptions<PaymentOptions>()
@@ -26,6 +30,14 @@ options.UseNpgsql(builder.Configuration.GetConnectionString("TmsDatabase"))
 .LogTo(Console.WriteLine, LogLevel.Information) // Log SQL to output window
 .EnableSensitiveDataLogging()); // Show parameters in querylogs (dev only)
 builder.Services.AddSingleton<EnrollmentWorker>();
+builder.Services.AddMediatR(cfg =>
+cfg.RegisterServicesFromAssembly(typeof(EnrollStudentValidator).Assembly));
+builder.Services.AddValidatorsFromAssembly(typeof(EnrollStudentValidator).Assembly);
+// LoggingBehavior FIRST—it must wrap ValidationBehavior
+builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
+builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
 builder.Services.AddScoped<IEnrollmentService, EnrollmentService>();
 builder.Services.AddScoped<IStudentService, StudentService>();
 builder.Services.AddScoped<ICourseService, CourseService>();
@@ -80,7 +92,7 @@ app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseExceptionHandler();
 app.UseAuthentication();
 app.UseAuthorization();
-
+app.UseRouting();
 app.UseStatusCodePages();
 // Environment-specific configuration
 if (app.Environment.IsDevelopment())

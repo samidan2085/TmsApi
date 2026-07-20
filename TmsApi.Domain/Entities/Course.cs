@@ -1,6 +1,4 @@
 
-using System;
-using TmsApi.Entities;
 namespace TmsApi.Domain.Entities;
 
 public class Course

@@ -1,10 +1,10 @@
 
 using Microsoft.EntityFrameworkCore;
-using TmsApi.Entities;
+using TmsApi.Domain.Entities;
 using TmsApi.Application.DTOs;
 using TmsApi.Application.Interfaces;
 using TmsApi.Infrastructure.Persistence.Context;
-using TmsApi.Domain.Entities;
+
 
 namespace TmsApi.Infrastructure.Services;
 

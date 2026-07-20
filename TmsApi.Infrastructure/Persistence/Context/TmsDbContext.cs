@@ -1,7 +1,7 @@
-using System.Runtime.ConstrainedExecution;
+
 using Microsoft.EntityFrameworkCore;
 using TmsApi.Domain.Entities;
-using TmsApi.Entities;
+using TmsApi.Domain.Entities;
 
 namespace TmsApi.Infrastructure.Persistence.Context;
 

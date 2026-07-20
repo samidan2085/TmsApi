@@ -1,7 +1,3 @@
-using System;
-using System.Diagnostics.CodeAnalysis;
-using TmsApi.Domain;
-using TmsApi.Domain.Entities;
 namespace TmsApi.Domain.Entities;
 
 public class Certificate

@@ -1,6 +1,5 @@
 
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Routing;
 using TmsApi.Application.DTOs;
 using TmsApi.Application.Interfaces;
 
@@ -32,7 +31,7 @@ public class CoursesController(
          new { id }) ?? string.Empty;
         var enrollmentsHref = linkGenerator.GetPathByAction(
        HttpContext,
-       action: "GetEnrollments",
+    //    action: "GetEnrollments",
        controller: "Enrollments",
        values: new { courseId = id }) ?? string.Empty;
         var links = new List<LinkDto>

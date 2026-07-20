@@ -1,5 +1,6 @@
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using TmsApi.Application.DTOs;
 using TmsApi.Application.Interfaces;
 using TmsApi.Domain.Entities;
@@ -39,9 +40,14 @@ public class CourseService(TmsDbContext context, ILogger<CourseService> logger) 
         Id, course.Code);
         return (await GetByIdAsync(course.Id, ct))!;
     }
-    public Task<bool> CodeExistsAsync(string code, CancellationToken ct) =>
-    context.Courses.AnyAsync(c => c.Code == code, ct);
-    public async Task<PagedResponse<CourseResponseDto>> GetCoursesAsync(PagedRequest request,
+    public Task<bool> CodeExistsAsync(string code, CancellationToken ct)
+    {
+        return context.Courses
+        .AsNoTracking()
+        .AnyAsync(c => c.Code==code);
+    }
+
+    public async Task<TmsApi.Application.DTOs.PagedResponse<CourseResponseDto>> GetCoursesAsync(PagedRequest request,
         CancellationToken ct)
     {
         // Step 1: Start with a no-tracking query
@@ -87,7 +93,7 @@ public class CourseService(TmsDbContext context, ILogger<CourseService> logger) 
             .ToListAsync(ct);
 
         // Step 6: Return paged response
-        return new PagedResponse<CourseResponseDto>
+        return new TmsApi.Application.DTOs.PagedResponse<CourseResponseDto>
         {
             Items = items,
             TotalCount = totalCount,
@@ -106,6 +112,12 @@ public class CourseService(TmsDbContext context, ILogger<CourseService> logger) 
         await context.SaveChangesAsync(ct);
         return await GetByIdAsync(id, ct);
     }
+    public async Task<Course?> GetByCodeAsync(string code,CancellationToken ct)
+    {
+        return await context.Courses
+        .Include(c=> c.Enrollments)
+        .FirstOrDefaultAsync(c=>c.Code==code,ct);
+    }
     public async Task<bool> DeleteAsync(int id, CancellationToken ct)
     {
         var course = await context.Courses.FirstOrDefaultAsync(c => c.Id == id, ct);
@@ -117,16 +129,19 @@ public class CourseService(TmsDbContext context, ILogger<CourseService> logger) 
         await context.SaveChangesAsync(ct);
         return true;
     }
+
+
+
     /*
-        public async Task<Course> CreateAsync(Course course, CancellationToken ct)
-        {
-            context.Courses.Add(course);
-            await context.SaveChangesAsync(ct);
-            logger.LogInformation("Course created with ID: {CourseId}", course.Id);
-            return course;
-            throw new NotImplementedException();
-        }
-         */
+   public async Task<Course> CreateAsync(Course course, CancellationToken ct)
+   {
+       context.Courses.Add(course);
+       await context.SaveChangesAsync(ct);
+       logger.LogInformation("Course created with ID: {CourseId}", course.Id);
+       return course;
+       throw new NotImplementedException();
+   }
+    */
 }
 
 
