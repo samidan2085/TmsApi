@@ -20,6 +20,7 @@ public class EnrollmentService(TmsDbContext context, ILogger<EnrollmentService> 
                 e.Id,
                 e.CourseId,
                 e.StudentId,
+                e.Status,
                 e.EnrolledAt))
             .FirstAsync(ct);
 
@@ -61,6 +62,7 @@ public class EnrollmentService(TmsDbContext context, ILogger<EnrollmentService> 
                 e.Id,
                 e.CourseId,
                 e.StudentId,
+                e.Status,
                 e.EnrolledAt))
             .ToListAsync(ct);
     }
@@ -99,6 +101,7 @@ public async Task<EnrollmentResponseDto> AddAsync(
         enrollment.Id,
         enrollment.CourseId,
         enrollment.StudentId,
+        enrollment.Status,
         enrollment.EnrolledAt);
 }
 
@@ -113,6 +116,18 @@ public async Task<IEnumerable<Enrollment>> GetByStudentIdAsync(
         .ToListAsync(ct);
 }
 
+    public Task<List<EnrollmentResponseDto>> GetAllEnrollmentsAsync(CancellationToken ct)
+    {
+        return context.Enrollments
+            .AsNoTracking()
+            .Select(e => new EnrollmentResponseDto(
+                e.Id,
+                e.CourseId,
+                e.StudentId,
+                e.Status,
+                e.EnrolledAt))
+            .ToListAsync(ct);
+    }
 }
 
 

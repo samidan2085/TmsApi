@@ -13,8 +13,7 @@ public interface IEnrollmentService
     Task<bool> ExistsAsync(int studentId, string CourseCode, CancellationToken ct);
     Task<EnrollmentResponseDto> AddAsync(Enrollment enrollment,CancellationToken ct);
     Task<IEnumerable<Enrollment>> GetByStudentIdAsync(int studentId, CancellationToken ct);
-    
-  
+    Task<List<EnrollmentResponseDto>> GetAllEnrollmentsAsync(CancellationToken ct);
 }
 
 /*public interface IEnrollmentService

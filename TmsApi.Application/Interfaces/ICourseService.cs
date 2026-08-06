@@ -7,6 +7,7 @@ using TmsApi.Domain.Entities;
 
 public interface ICourseService
 {
+     Task<List<CourseDto>> GetAllAsync(CancellationToken ct);
     Task<CourseResponseDto?> GetByIdAsync(int id, CancellationToken ct);
     Task<CourseResponseDto> CreateAsync(CreateCourseRequest request, CancellationToken ct);
     Task<bool> CodeExistsAsync(string code, CancellationToken ct);
