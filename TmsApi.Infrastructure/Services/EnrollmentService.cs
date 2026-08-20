@@ -19,7 +19,9 @@ public class EnrollmentService(TmsDbContext context, ILogger<EnrollmentService> 
             .Select(e => new EnrollmentResponseDto(
                 e.Id,
                 e.CourseId,
+                e.Course.Title,
                 e.StudentId,
+                e.Student.Name,
                 e.Status,
                 e.EnrolledAt))
             .FirstAsync(ct);
@@ -61,7 +63,9 @@ public class EnrollmentService(TmsDbContext context, ILogger<EnrollmentService> 
             .Select(e => new EnrollmentResponseDto(
                 e.Id,
                 e.CourseId,
+                e.Course.Title,
                 e.StudentId,
+                e.Student.Name,
                 e.Status,
                 e.EnrolledAt))
             .ToListAsync(ct);
@@ -100,7 +104,9 @@ public async Task<EnrollmentResponseDto> AddAsync(
     return new EnrollmentResponseDto(
         enrollment.Id,
         enrollment.CourseId,
+        enrollment.Course.Title,
         enrollment.StudentId,
+        enrollment.Student.Name,
         enrollment.Status,
         enrollment.EnrolledAt);
 }
@@ -120,14 +126,35 @@ public async Task<IEnumerable<Enrollment>> GetByStudentIdAsync(
     {
         return context.Enrollments
             .AsNoTracking()
+              .Include(e => e.Student)
+            .Include(e => e.Course)
+          
             .Select(e => new EnrollmentResponseDto(
                 e.Id,
                 e.CourseId,
+                e.Course.Title,
                 e.StudentId,
+                e.Student.Name,
                 e.Status,
                 e.EnrolledAt))
             .ToListAsync(ct);
     }
+    public async Task<Enrollment?> RejectAsync(
+    int id,
+    CancellationToken ct)
+{
+    var enrollment = await context.Enrollments
+        .FirstOrDefaultAsync(e => e.Id == id, ct);
+
+    if (enrollment is null)
+        return null;
+
+    enrollment.Status = "Pending";
+
+    await context.SaveChangesAsync(ct);
+
+    return enrollment;
+}
 }
 
 

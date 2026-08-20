@@ -1,15 +1,22 @@
 using Asp.Versioning;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
+using TmsApi.Api.Hubs;
 using TmsApi.Application.Enrollments.Commands;
 using TmsApi.Application.Enrollments.Queries;
-
+using TmsApi.Application.Hubs;
+using TmsApi.Domain.Entities;
+using TmsApi.Infrastructure.Persistence;
 namespace TmsApi.Api.Controllers;
 
 [ApiController]
 [Route("api/v{version:apiVersion}/enrollments")]
 [ApiVersion("2.0")]
-public class EnrollmentsController(IMediator mediator) : ControllerBase
+#pragma warning disable CS9113 // Parameter is unread.
+public class EnrollmentsController(IMediator mediator, IHubContext<TmsHub, ITmsHubClient> hubContext, Application.Interfaces.ITmsDbContext context) : ControllerBase
+#pragma warning restore CS9113 // Parameter is unread.
 {
     // Fetches actual records from database via MediatR
     [HttpGet]
@@ -17,14 +24,6 @@ public class EnrollmentsController(IMediator mediator) : ControllerBase
     {
         var enrollments = await mediator.Send(new GetAllEnrollmentQuery(), ct);
         return Ok(enrollments);
-    }
-
-    [HttpPost("{id:int}/approve")]
-    public async Task<IActionResult> Approve(int id, CancellationToken ct)
-    {
-        
-        var result = await mediator.Send(new ApproveEnrollmentCommand(id), ct);
-        return Ok(result);
     }
 
     [HttpPost]
@@ -49,7 +48,7 @@ public class EnrollmentsController(IMediator mediator) : ControllerBase
                     statusCode: status,
                     title: "Enrollment rejected",
                     detail: error.Message,
-                    type: $"https://tms.local/errors/{error.Code}");
+                    type: $"http://tms.local/errors/{error.Code}");
             });
     }
 
@@ -61,4 +60,46 @@ public class EnrollmentsController(IMediator mediator) : ControllerBase
             new GetStudentScheduleQuery(studentId), ct);
         return Ok(schedule);
     }
+    // POST /api/v2/enrollments/1/approve
+    [HttpPost("{id:int}/approve")]
+    public async Task<IActionResult> Approve(
+        int id,
+        CancellationToken ct)
+    {
+        var result = await mediator.Send(
+            new ApproveEnrollmentCommand(id),
+            ct);
+
+        // Tell every connected Angular client
+        await hubContext.Clients.All.ReceiveEnrollmentStatusUpdated(
+        id,
+        "Approved");
+
+        return Ok(result);
+
+
+    }
+   [HttpPut("{id}/reject")]
+public async Task<IActionResult> Reject(
+    int id,
+    CancellationToken ct)
+{
+    var result = await mediator.Send(
+        new RejectEnrollmentCommand(id),
+        ct);
+
+    if (result is null)
+    {
+        return NotFound(new
+        {
+            message = $"Enrollment {id} not found."
+        });
+    }
+
+    await hubContext.Clients.All.ReceiveEnrollmentStatusUpdated(
+        id,
+        "Rejected");
+
+    return Ok(result);
+}
 }

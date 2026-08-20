@@ -1,3 +1,4 @@
+global using Microsoft.Extensions.Hosting;
 using TmsApi.Application.Enrollments.Commands;
 using TmsApi.Application.Behaviors;
 using Asp.Versioning;
@@ -21,8 +22,34 @@ using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using TmsApi.Api.RateLimiting;
-
+using TmsApi.Application.Transcripts;
+using TmsApi.Infrastructure.Transcripts;
+using System.Threading.Channels;
+using TmsApi.Infrastructure.Workers;
+using TmsApi.Api.Hubs;
+using TmsApi.Application.Notifications;
+using TmsApi.Api.Notifications;
+using Microsoft.AspNetCore.Antiforgery;
+using TmsApi.Infrastructure.Identity;
+using Microsoft.AspNetCore.Identity;
 var builder = WebApplication.CreateBuilder(args);
+
+// Load allowed origins from appsettings.Development.json
+var allowedOrigins = builder.Configuration
+.GetSection("AllowedOrigins").Get<string[]>()
+?? ["http://localhost:4200"];
+// Register the CORS policy in the Dependency Injection container
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("TmsClient", policy =>
+    {
+        policy.WithOrigins(allowedOrigins)
+    .AllowAnyHeader()
+    .AllowAnyMethod()
+    .AllowCredentials() // Vital for HttpOnly auth cookies in Session 2
+    .SetPreflightMaxAge(TimeSpan.FromMinutes(10));
+    });
+});
 builder.Services
     .AddOptions<PaymentOptions>()
     .BindConfiguration("Payments")
@@ -57,6 +84,16 @@ builder.Services.AddScoped<ICourseService, CourseService>();
 builder.Services.AddScoped<ICertificatServices, CertificatService>();
 builder.Services.AddScoped<ICachedCourseService, CachedCourseService>();
 builder.Services.AddScoped<ITmsDbContext, TmsDbContext>();
+builder.Services.AddSingleton<ITranscriptStatusStore, InMemoryTranscriptStatusStore>();
+builder.Services.AddSingleton<ITranscriptNotificationService, SignalRTranscriptNotificationService>();
+builder.Services.AddHostedService<TranscriptWorker>();
+
+builder.Services.AddSingleton(Channel.CreateBounded<TranscriptRequest>(
+new BoundedChannelOptions(100)
+{
+    FullMode = BoundedChannelFullMode.Wait
+}));
+builder.Services.AddSignalR();
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.SetMinimumLevel(LogLevel.Information);
@@ -166,7 +203,7 @@ builder.Services.AddRateLimiter(options =>
 
         Console.WriteLine("Rate limiter rejected request.");
     };
-    
+
     options.AddTokenBucketLimiter("anonymous", opt =>
 {
     opt.TokenLimit = 10;
@@ -184,24 +221,63 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod()
             .AllowCredentials());
 });
-
+builder.Services.AddAntiforgery(options =>
+{
+    options.HeaderName = "X-XSRF-TOKEN";
+});
+builder.Services.AddIdentityCore<TmsUser>(options =>
+{
+    // Enterprise Password Policy
+    options.Password.RequiredLength = 12;
+    options.Password.RequireUppercase = true;
+    options.Password.RequireDigit = true;
+    options.Password.RequireNonAlphanumeric = true;
+    // Brute-Force Lockout Protection
+    options.Lockout.MaxFailedAccessAttempts = 5;
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+    options.Lockout.AllowedForNewUsers = true;
+})
+.AddRoles<IdentityRole>()
+.AddEntityFrameworkStores<TmsDbContext>();
 var app = builder.Build();
 app.UseRouting();
-
+app.UseHttpsRedirection();
 app.UseCors("AllowAngular");
-
-app.UseAuthentication();
-
-app.UseAuthorization();
+app.UseAntiforgery();
 
 app.UseRateLimiter();
+
+app.MapControllers();
+
+app.MapHub<TmsHub>("/hubs/tms").RequireCors("TmsClient");
 
 app.UseMiddleware<V1DeprecationMiddleware>();
 
 app.UseMiddleware<RequestLoggingMiddleware>();
 
-app.MapControllers();
+app.UseAuthentication();
+
+app.UseAuthorization();
+app.UseCors("TmsClient");
 app.UseStatusCodePages();
+app.Use(async (context, next) =>
+{
+    if (context.User.Identity?.IsAuthenticated == true || context.
+    Request.Cookies.ContainsKey("tms_auth"))
+    {
+        var antiforgery = context.RequestServices
+        .GetRequiredService<IAntiforgery>();
+        var tokens = antiforgery.GetAndStoreTokens(context);
+        context.Response.Cookies.Append("XSRF-TOKEN", tokens.RequestToken!,
+        new CookieOptions
+        {
+            HttpOnly = false, // MUST be false so Angular JavaScript can read it!
+            Secure = !builder.Environment.IsDevelopment(),
+            SameSite = SameSiteMode.Strict
+        });
+    }
+    await next(context);
+});
 // Environment-specific configuration
 if (app.Environment.IsDevelopment())
 {

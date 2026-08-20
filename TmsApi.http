@@ -128,5 +128,14 @@ curl  -X POST https://localhost:5178/api/v2/enrollments\
 -H "Content-Type: application/json" \
 -d '{"studentId": 1, "courseCode": "CSE-101"}'
 
+###
+curl -i -X POST http://localhost:5178/api/v2/transcripts \
+-H "Content-Type: application/json" \
+-H "Idempotency-Key: 11111111-2222-3333-4444-555555555555" \
+-d '{"studentId": 5}'
+###
+curl -X POST http://localhost:5178/api/v2/transcripts \
+-H "Content-Type: application/json" \
+-d '{"studentId": 1}'
 
 

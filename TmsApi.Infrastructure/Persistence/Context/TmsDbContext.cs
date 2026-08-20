@@ -1,13 +1,14 @@
 
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using TmsApi.Application.Interfaces;
 using TmsApi.Domain.Entities;
-
+using TmsApi.Infrastructure.Identity;
 namespace TmsApi.Infrastructure.Persistence.Context;
 
 public class TmsDbContext(
     DbContextOptions<TmsDbContext> options)
-    : DbContext(options), ITmsDbContext
+    : IdentityDbContext<TmsUser>(options), ITmsDbContext
 {
     public DbSet<Student> Students => Set<Student>();
     public DbSet<Course> Courses => Set<Course>();
