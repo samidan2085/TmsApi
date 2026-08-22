@@ -14,6 +14,7 @@ public class TmsDbContext(
     public DbSet<Course> Courses => Set<Course>();
     public DbSet<Enrollment> Enrollments => Set<Enrollment>();
     public DbSet<Certificate> certificates => Set<Certificate>();
+ public DbSet<RefreshToken> RefreshTokens =>Set<RefreshToken>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
