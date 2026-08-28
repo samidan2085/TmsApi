@@ -1,16 +1,20 @@
 
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TmsApi.Application.DTOs;
 using TmsApi.Application.Interfaces;
-
+using TmsApi.Infrastructure.Persistence.Context;
+using TmsApi.Application.Common;
 namespace TmsApi.Api.Controllers;
-
+[Authorize(Roles = "Instructor,Admin")]
 [ApiController]
 [Route("api/courses")]
+[AllowAnonymous]
 public class CoursesController(
     ICourseService courseService,
-    LinkGenerator linkGenerator
-
+    LinkGenerator linkGenerator,
+TmsDbContext context,
+IAuthorizationService authorizationService
 
 ) : ControllerBase
 {
@@ -68,15 +72,18 @@ public class CoursesController(
         throw new NotImplementedException();
     }
 
-        /*
-        [HttpPost]
-        public async Task<IActionResult> CreateCourse(CreateCourseRequest request, CancellationToken ct)
-        {
-        var result = await courseService.CreateAsync(request, ct);
-        return CreatedAtAction(nameof(GetCourseById), new { id = result.Id }, result);
-        }
-        */
-        [HttpPost]
+    /*
+    [HttpPost]
+    public async Task<IActionResult> CreateCourse(CreateCourseRequest request, CancellationToken ct)
+    {
+    var result = await courseService.CreateAsync(request, ct);
+    return CreatedAtAction(nameof(GetCourseById), new { id = result.Id }, result);
+    }
+    */
+#pragma warning disable ASP0026 // [Authorize] overridden by [AllowAnonymous] from farther away
+    [Authorize(Roles = "Admin")]
+#pragma warning restore ASP0026 // [Authorize] overridden by [AllowAnonymous] from farther away
+    [HttpPost]
 [ProducesResponseType(typeof(CourseResponseDto), StatusCodes.Status201Created)]
 [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
 [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
@@ -127,6 +134,7 @@ public class CoursesController(
         }
         return Ok(course);
     }
+    [Authorize(Roles = "Admin")]
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> DeleteCourse(int id, CancellationToken ct)
     {
@@ -137,8 +145,25 @@ public class CoursesController(
         }
         return NoContent();
     }
+[Authorize(Policy = "CanEditCourse")]
+[HttpPut("{id}")]
+public async Task<IActionResult> UpdateCourse(int id, [FromBody]
+UpdateCourseRequest dto)
+{
+var course = await context.Courses.FindAsync(id);
+if (course == null) return NotFound();
+var authResult = await
+authorizationService.AuthorizeAsync(User, course, "CanEditCourse");
+if (!authResult.Succeeded)
+{
+return Forbid(); // 403 Forbidden when caller doesn't ownthe resource
+}
+course.Title = dto.Title;
+await context.SaveChangesAsync();
+return NoContent(); }
+}
       
-    }
+    
 /*
 public class CoursesController(ICourseService courseService) : ControllerBase
 {

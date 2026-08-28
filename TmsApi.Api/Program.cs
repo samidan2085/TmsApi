@@ -36,6 +36,8 @@ using TmsApi.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using TmsApi.Api.Authorization;
+using Microsoft.AspNetCore.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -139,6 +141,10 @@ builder.Services.AddScoped<ICertificatServices, CertificatService>();
 builder.Services.AddScoped<ICachedCourseService, CachedCourseService>();
 builder.Services.AddScoped<ITmsDbContext, TmsDbContext>();
 
+builder.Services.AddSingleton<
+    IAuthorizationHandler,
+    CourseInstructorHandler>();
+
 // ============================================================
 // TRANSCRIPT SERVICES
 // ============================================================
@@ -190,6 +196,7 @@ builder.Services.AddIdentityCore<TmsUser>(options =>
     options.Lockout.MaxFailedAccessAttempts = 5;
     options.Lockout.DefaultLockoutTimeSpan =
         TimeSpan.FromMinutes(15);
+
     options.Lockout.AllowedForNewUsers = true;
 })
 .AddRoles<IdentityRole>()
@@ -210,27 +217,72 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
-    options.TokenValidationParameters =
-        new TokenValidationParameters
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(
+                builder.Configuration["Jwt:Key"]!)),
+
+        ClockSkew = TimeSpan.Zero
+    };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnAuthenticationFailed = context =>
         {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
+            Console.WriteLine(
+                $"JWT Authentication Failed: {context.Exception.Message}");
 
-            ValidIssuer =
-                builder.Configuration["Jwt:Issuer"],
+            return Task.CompletedTask;
+        },
 
-            ValidAudience =
-                builder.Configuration["Jwt:Audience"],
+        OnChallenge = async context =>
+        {
+            // Prevent the default empty 401 response
+            context.HandleResponse();
 
-            IssuerSigningKey =
-                new SymmetricSecurityKey(
-                    Encoding.UTF8.GetBytes(
-                        builder.Configuration["Jwt:Key"]!))
-        };
+            context.Response.StatusCode =
+                StatusCodes.Status401Unauthorized;
+
+            context.Response.ContentType =
+                "application/json";
+
+            await context.Response.WriteAsJsonAsync(new
+            {
+                status = 401,
+                title = "Unauthorized",
+                message = "Authentication is required. Please provide a valid JWT token."
+            });
+        },
+
+        OnForbidden = async context =>
+        {
+            context.Response.StatusCode =
+                StatusCodes.Status403Forbidden;
+
+            context.Response.ContentType =
+                "application/json";
+
+            await context.Response.WriteAsJsonAsync(new
+            {
+                status = 403,
+                title = "Forbidden",
+                message = "You do not have permission to access this resource."
+            });
+        }
+    };
 })
-.AddScheme<AuthenticationSchemeOptions, TrainingAuthHandler>(
+.AddScheme<
+    AuthenticationSchemeOptions,
+    TrainingAuthHandler>(
     "Training",
     null);
 
@@ -254,6 +306,11 @@ builder.Services.AddControllers(options =>
 // ============================================================
 
 builder.Services.AddAuthorization();
+
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("CanEditCourse", policy =>
+        policy.Requirements.Add(
+            new CourseInstructorRequirement()));
 
 // ============================================================
 // API VERSIONING
@@ -332,9 +389,9 @@ builder.Services.AddRateLimiter(options =>
 
                 return tier switch
                 {
-                    // ------------------------------
+                    // ------------------------------------------------
                     // PAID
-                    // ------------------------------
+                    // ------------------------------------------------
 
                     ApiKeyTier.Paid =>
                         RateLimitPartition
@@ -352,9 +409,9 @@ builder.Services.AddRateLimiter(options =>
                                         AutoReplenishment = true
                                     }),
 
-                    // ------------------------------
+                    // ------------------------------------------------
                     // FREE
-                    // ------------------------------
+                    // ------------------------------------------------
 
                     ApiKeyTier.Free =>
                         RateLimitPartition
@@ -372,9 +429,9 @@ builder.Services.AddRateLimiter(options =>
                                         AutoReplenishment = true
                                     }),
 
-                    // ------------------------------
+                    // ------------------------------------------------
                     // ANONYMOUS
-                    // ------------------------------
+                    // ------------------------------------------------
 
                     _ =>
                         RateLimitPartition
@@ -419,7 +476,7 @@ builder.Services.AddRateLimiter(options =>
             opt.TokenLimit = 10;
             opt.TokensPerPeriod = 5;
             opt.ReplenishmentPeriod =
-                TimeSpan.FromSeconds(10);
+            TimeSpan.FromSeconds(10);
             opt.QueueLimit = 2;
         });
 
@@ -434,7 +491,7 @@ builder.Services.AddRateLimiter(options =>
             opt.TokenLimit = 10;
             opt.TokensPerPeriod = 5;
             opt.ReplenishmentPeriod =
-                TimeSpan.FromSeconds(10);
+            TimeSpan.FromSeconds(10);
             opt.QueueLimit = 0;
             opt.AutoReplenishment = true;
         });
@@ -452,8 +509,7 @@ builder.Services.AddRateLimiter(options =>
             "Too Many Requests",
             token);
 
-        Console.WriteLine(
-            "Rate limiter rejected request.");
+        Console.WriteLine( "Rate limiter rejected request.");
     };
 });
 
@@ -480,12 +536,35 @@ app.UseRateLimiter();
 app.UseMiddleware<V1DeprecationMiddleware>();
 
 app.UseMiddleware<RequestLoggingMiddleware>();
-
+app.UseStatusCodePages();
 app.UseAuthentication();
 
 app.UseAuthorization();
 
-app.UseStatusCodePages();
+
+
+// ============================================================
+// SECURITY HEADERS
+// IMPORTANT: MUST BE BEFORE ENDPOINT MAPPING
+// ============================================================
+
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Append(
+        "X-Content-Type-Options",
+        "nosniff");
+
+    context.Response.Headers.Append(
+        "X-Frame-Options",
+        "DENY");
+
+    context.Response.Headers.Append(
+        "Referrer-Policy",
+        "strict-origin-when-cross-origin");
+
+
+    await next();
+});
 
 // ============================================================
 // XSRF TOKEN COOKIE
@@ -510,9 +589,12 @@ app.Use(async (context, next) =>
             new CookieOptions
             {
                 HttpOnly = false,
+
                 Secure =
                     !builder.Environment.IsDevelopment(),
-                SameSite = SameSiteMode.Strict
+
+                SameSite =
+                    SameSiteMode.Strict
             });
     }
 
@@ -522,6 +604,10 @@ app.Use(async (context, next) =>
 // ============================================================
 // DEVELOPMENT CONFIGURATION
 // ============================================================
+// ============================================================
+// OPENAPI + SCALAR
+// ============================================================
+
 
 if (app.Environment.IsDevelopment())
 {
@@ -537,8 +623,12 @@ if (app.Environment.IsDevelopment())
                 ScalarClient.HttpClient);
 
         options
-            .AddDocument("v1", "API Version 1.0")
-            .AddDocument("v2", "API Version 2.0");
+            .AddDocument(
+                "v1",
+                "API Version 1.0")
+            .AddDocument(
+                "v2",
+                "API Version 2.0");
     });
 
     // --------------------------------------------------------
@@ -704,14 +794,16 @@ using (var scope = app.Services.CreateScope())
             new()
             {
                 Code = "CS-101",
-                Title = "Introduction to Computer Science",
+                Title =
+                    "Introduction to Computer Science",
                 MaxCapacity = 30
             },
 
             new()
             {
                 Code = "CS-201",
-                Title = "Data Structures and Algorithms",
+                Title =
+                    "Data Structures and Algorithms",
                 MaxCapacity = 25
             },
 

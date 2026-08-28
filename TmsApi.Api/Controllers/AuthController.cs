@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using TmsApi.Domain.Entities;
 using TmsApi.Infrastructure.Identity;
@@ -60,42 +61,78 @@ IdentityRole(request.Role));
 await _userManager.AddToRoleAsync(user, request.Role);
 return Ok(new { message = "Registration successful." });
 }
+//[EnableRateLimiting("AuthLimiter")]
 
 [HttpPost("login")]
-public async Task<IActionResult> Login([FromBody] LoginRequest request)
+public async Task<IActionResult> Login(
+    [FromBody] LoginRequest request)
 {
-var user = await _userManager.FindByEmailAsync(request.Email);
-if (user == null) return Unauthorized(new { detail = "Invalidcredentials." });
-if (await _userManager.IsLockedOutAsync(user))
-{
-return StatusCode(423, new { detail = "Account locked dueto multiple failed login attempts." });
-}
-var validPassword = await _userManager.CheckPasswordAsync(user,
-request.Password);
-if (!validPassword)
-{
-await _userManager.AccessFailedAsync(user);
-return Unauthorized(new { detail = "Invalidcredentials." });
-}
-await _userManager.ResetAccessFailedCountAsync(user);
-var roles = await _userManager.GetRolesAsync(user);
-var accessToken = _tokenService.GenerateJwt(user, roles);
-// Issue initial Refresh Token
-var refreshToken = new RefreshToken
-{
-Token = Guid.NewGuid().ToString("N"),
-UserId = user.Id,
-ExpiresAt = DateTime.UtcNow.AddDays(7),
-IsUsed = false,
-IsRevoked = false
-};
-_context.RefreshTokens.Add(refreshToken);
-await _context.SaveChangesAsync();
-return Ok(new
-{
-accessToken,
-refreshToken = refreshToken.Token
-});
+    var user = await _userManager.FindByEmailAsync(request.Email);
+
+    if (user == null)
+    {
+        return Unauthorized(new
+        {
+            detail = "Invalid credentials."
+        });
+    }
+
+    if (await _userManager.IsLockedOutAsync(user))
+    {
+        return StatusCode(423, new
+        {
+            detail = "Account locked due to multiple failed login attempts."
+        });
+    }
+
+    var validPassword =
+        await _userManager.CheckPasswordAsync(
+            user,
+            request.Password);
+
+    if (!validPassword)
+    {
+        await _userManager.AccessFailedAsync(user);
+
+        return Unauthorized(new
+        {
+            detail = "Invalid credentials."
+        });
+    }
+
+    await _userManager.ResetAccessFailedCountAsync(user);
+
+    // Get user's Identity roles
+    var roles = await _userManager.GetRolesAsync(user);
+
+    // Generate JWT
+    var accessToken =
+        _tokenService.GenerateJwt(user, roles);
+
+    // Create refresh token
+    var refreshToken = new RefreshToken
+    {
+        Token = Guid.NewGuid().ToString("N"),
+        UserId = user.Id,
+        ExpiresAt = DateTime.UtcNow.AddDays(7),
+        IsUsed = false,
+        IsRevoked = false
+    };
+
+    _context.RefreshTokens.Add(refreshToken);
+
+    await _context.SaveChangesAsync();
+
+    // Return everything Angular needs
+    return Ok(new
+    {
+        token = accessToken,
+        refreshToken = refreshToken.Token,
+        email = user.Email,
+        username = user.UserName,
+        fullName = $"{user.FirstName} {user.LastName}".Trim(),
+        role = roles.FirstOrDefault()
+    });
 }
 public record RefreshRequest(string RefreshToken);
 [HttpPost("refresh")]
