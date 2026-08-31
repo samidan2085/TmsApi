@@ -108,7 +108,7 @@ public class CourseService : ICourseService
         // Step 6: Return paged response
         return new TmsApi.Application.DTOs.PagedResponse<CourseResponseDto>
         {
-            Items = items,
+            Data = items,
             TotalCount = totalCount,
             Page = request.Page,
             PageSize = request.PageSize

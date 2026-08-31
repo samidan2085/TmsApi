@@ -9,6 +9,6 @@ public record CreateCourseRequest
     [Required, MaxLength(200)]
     public required string title { get; init; }
     [Required, Range(1, 200)]
-    public required int MaxCapacity { get; init; 
+    public required int MaxCapacity { get; init;}
+    public string? InstructorId {get;init;}
     }
-}

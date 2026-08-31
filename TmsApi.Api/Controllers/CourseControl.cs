@@ -134,19 +134,30 @@ IAuthorizationService authorizationService
         }
         return Ok(course);
     }
+#pragma warning disable ASP0026 // [Authorize] overridden by [AllowAnonymous] from farther away
     [Authorize(Roles = "Admin")]
+#pragma warning restore ASP0026 // [Authorize] overridden by [AllowAnonymous] from farther away
     [HttpDelete("{id:int}")]
-    public async Task<IActionResult> DeleteCourse(int id, CancellationToken ct)
+public async Task<IActionResult> DeleteCourse(
+    int id,
+    CancellationToken ct)
+{
+    var deleted = await courseService.DeleteAsync(id, ct);
+
+    if (!deleted)
     {
-        var delete= await courseService.DeleteAsync(id,ct);
-        if (!delete)
+        return NotFound(new
         {
-            return NotFound();
-        }
-        return NoContent();
+            message = "Course not found."
+        });
     }
-[Authorize(Policy = "CanEditCourse")]
-[HttpPut("{id}")]
+
+    return NoContent();
+}
+#pragma warning disable ASP0026 // [Authorize] overridden by [AllowAnonymous] from farther away
+    [Authorize(Policy = "CanEditCourse")]
+#pragma warning restore ASP0026 // [Authorize] overridden by [AllowAnonymous] from farther away
+    [HttpPut("{id}")]
 public async Task<IActionResult> UpdateCourse(int id, [FromBody]
 UpdateCourseRequest dto)
 {

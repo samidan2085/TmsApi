@@ -513,6 +513,7 @@ builder.Services.AddRateLimiter(options =>
     };
 });
 
+
 // ============================================================
 // BUILD APPLICATION
 // ============================================================
@@ -647,6 +648,17 @@ if (app.Environment.IsDevelopment())
 else
 {
     app.UseExceptionHandler();
+}
+if (!app.Environment.IsEnvironment("Testing"))
+{
+    using var scope = app.Services.CreateScope();
+
+    var context = scope.ServiceProvider
+        .GetRequiredService<TmsDbContext>();
+
+    context.Database.Migrate();
+
+    await DataSeeder.SeedAsync(context);
 }
 
 // ============================================================
@@ -861,3 +873,4 @@ using (var scope = app.Services.CreateScope())
 // ============================================================
 
 app.Run();
+public partial class Program { }

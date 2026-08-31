@@ -18,8 +18,7 @@ public class StudentConfiguration : IEntityTypeConfiguration<Student>
             .WithOne(e => e.Student)
             .HasForeignKey(e => e.StudentId)
             .OnDelete(DeleteBehavior.Restrict);
-        b.Property(s => s.Version)
-               .IsRowVersion();
+       
         b.HasQueryFilter(s => !s.IsDeleted);
 
         b.Property<DateTime>("LastUpdated");

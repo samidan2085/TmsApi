@@ -1,4 +1,5 @@
 
+using System.Reflection.Emit;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using TmsApi.Application.Interfaces;
@@ -22,6 +23,10 @@ public class TmsDbContext(
             typeof(TmsDbContext).Assembly);
 
         base.OnModelCreating(b);
+        // Tell EF Core to use PostgreSQL's built-in system xmin column for concurrency check
+     b.Entity<Student>()
+        .Property<uint>("Version")
+        .IsRowVersion();
     }
     public override async Task<int> SaveChangesAsync(
     CancellationToken cancellationToken = default)

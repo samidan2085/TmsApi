@@ -9,11 +9,11 @@ using TmsApi.Infrastructure.Persistence.Context;
 
 #nullable disable
 
-namespace TmsApi.Migrations
+namespace TmsApi.Infrastructure.Migrations
 {
     [DbContext(typeof(TmsDbContext))]
-    [Migration("20260820083845_AddRefreshTokens")]
-    partial class AddRefreshTokens
+    [Migration("20260829014135_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -208,6 +208,9 @@ namespace TmsApi.Migrations
                         .IsRequired()
                         .HasMaxLength(10)
                         .HasColumnType("character varying(10)");
+
+                    b.Property<string>("InstructorId")
+                        .HasColumnType("text");
 
                     b.Property<int>("MaxCapacity")
                         .HasColumnType("integer");

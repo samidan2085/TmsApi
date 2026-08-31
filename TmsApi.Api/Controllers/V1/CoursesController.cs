@@ -3,11 +3,14 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 namespace TmsApi.Controllers.V1;
 
+using Microsoft.AspNetCore.Authorization;
 using TmsApi.Infrastructure.Persistence.Context;
 
 [ApiController]
 [Route("api/v{version:apiVersion}/courses")]
 [ApiVersion("1.0")]
+[Authorize(Roles="Admin")]
+[AllowAnonymous]
 public class CoursesController(TmsDbContext context) : ControllerBase
 {
     [HttpGet]
